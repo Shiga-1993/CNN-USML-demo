@@ -1,0 +1,61 @@
+README – Scoring_loop.sh and Scoring.py Pipeline
+
+Overview:
+  This pipeline consists of two parts:
+    1. Scoring_loop.sh (Shell Script): This script iterates over various neural network configurations and dimensionality reduction (DR) parameters (e.g., tSNE, UMAP, etc.). For each combination, it sets the corresponding environment variables, creates necessary output directories, and calls the Python script (Scoring.py) with flags to generate plots and compute clustering evaluation metrics.
+    2. Scoring.py (Python Script): This script reads t-SNE result files from a specified input directory, extracts 2D feature components and rock type labels (using a predefined mapping), optionally plots the data (with each rock type assigned a unique color), and computes clustering evaluation metrics (silhouette score, Davies-Bouldin index, Calinski-Harabasz index). The results (plots and CSV scores) are saved to an output directory.
+
+Dependencies:
+  - Python 3
+  - PyTorch (if required, loaded via "module load pytorch" in the shell script)
+  - Python packages: numpy, pandas, matplotlib, scikit-learn
+  - Input Data: The input directory must contain the t-SNE result files. These files are typically generated using feature vectors extracted from the Zenodo repository “Case3-DenseNet161-Data.zip”. (Note: For the demo, only 10 images per data type are included due to data size constraints.)
+  - Output: Plots and CSV score files are saved in the designated output directory (which is created if it does not exist).
+
+Usage:
+  For Scoring_loop.sh:
+    1. Edit parameters such as NNtype (e.g., DenseNet or ResNet), layer types, DR method (e.g., tsne, umap, isomap, mds, pca), and hyperparameters (h_param) as needed.
+    2. Verify that the input directory (used by Scoring.py) contains the appropriate t-SNE result files.
+    3. Make the script executable:
+           chmod +x Scoring_loop.sh
+    4. Run the script:
+           ./Scoring_loop.sh
+
+  For Scoring.py:
+    - The script is invoked by Scoring_loop.sh with two command-line arguments:
+         * The first argument ("yes" or "no") enables or disables plotting.
+         * The second argument ("yes" or "no") enables or disables clustering score calculation.
+      Example:
+           python3 Scoring.py yes yes
+
+How It Works:
+  Scoring_loop.sh:
+    • Iterates over neural network types (e.g., DenseNet) and sets a corresponding list of layer types.
+    • For each DR method (e.g., tsne, umap, isomap, mds, pca), it sets the output folder name and DR-specific hyperparameter values (h_params and hp_name).
+    • For each combination of h_param and layer_type, the script:
+         - Exports environment variables (NNtype, layer_type, type_of_DR, type_of_DR_for_dir, h_param, hp_name, output_dir, etc.).
+         - Creates necessary output directories.
+         - Calls the Python script (Scoring.py) with flags to enable plotting and score calculation.
+  
+  Scoring.py:
+    • Retrieves plotting and scoring flags from command-line arguments.
+    • Reads environment variables to obtain filtering parameters (NNtype, layer_type, type_of_DR, hp_name, h_param, etc.).
+    • Filters t-SNE result files in the specified input directory (e.g., '../Case2-tSNE-Data') using a regex pattern based on these parameters.
+    • Loads each file to extract the two t-SNE components (ignoring the index column).
+    • Uses a predefined rock_types mapping dictionary to extract simplified labels from filenames.
+    • Optionally plots a 2D scatter graph of the t-SNE components, assigning a unique color to each rock type, and saves the plot.
+    • If enabled, computes clustering evaluation metrics (silhouette score, Davies-Bouldin index, and Calinski-Harabasz index) on the aggregated data, and writes the scores to a CSV file.
+
+Important Notes:
+  - File Filtering: The regex pattern in Scoring.py filters files based on parameters (e.g., NNtype, layer_type, DR method, h_param). Ensure your files follow the expected naming convention.
+  - t-SNE Characteristics: Although the scatter plot may show coordinate shifts or misalignments, these are inherent to the t-SNE algorithm (which preserves local similarities rather than absolute positions). Such shifts do not affect the reliability of clustering metrics.
+  - Clustering Robustness: Clustering scores (silhouette, Davies-Bouldin, Calinski-Harabasz) are not significantly affected by these coordinate shifts; thus, the conclusions regarding clustering performance remain robust.
+
+Customization:
+  - Adjust neural network types, layer numbers, DR methods, and hyperparameter settings in Scoring_loop.sh as needed.
+  - Modify plotting options, output paths, or evaluation metric settings in Scoring.py to meet your analysis requirements.
+  - Update the rock_types mapping dictionary in Scoring.py if your dataset labels differ.
+
+Conclusion:
+  This pipeline provides a comprehensive framework for visualizing and evaluating clustering performance of feature vectors via t-SNE (and other DR methods). The integrated use of a looping shell script (Scoring_loop.sh) and a Python analysis script (Scoring.py) ensures robust and flexible analysis of data similarity and clustering outcomes.
+

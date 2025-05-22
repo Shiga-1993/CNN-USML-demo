@@ -1,0 +1,2 @@
+NNtype,LayerType,TypeOfDR,HParam,SilhouetteScore,DaviesBouldinIndex,CalinskiHarabaszIndex
+DenseNet,161,tsne,80,0.5441110179487514,0.6145782135051633,20724.75820561677
